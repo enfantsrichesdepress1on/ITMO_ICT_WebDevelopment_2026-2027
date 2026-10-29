@@ -1,9 +1,11 @@
+
 name: Deploy MkDocs
 
 on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -15,8 +17,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout Lab 1
         uses: actions/checkout@v7
+        with:
+          ref: main
+          path: source-main
+
+      - name: Checkout Lab 2
+        uses: actions/checkout@v7
+        with:
+          ref: lr2
+          path: source-lr2
 
       - name: Setup Python
         uses: actions/setup-python@v7
@@ -24,11 +35,19 @@ jobs:
           python-version: "3.13"
 
       - name: Install MkDocs
-        run: pip install mkdocs
+        run: python -m pip install mkdocs
 
-      - name: Build MkDocs
-        working-directory: students/K3242/Marusyak_Nikita/laboratory_work1
-        run: mkdocs build
+      - name: Build Lab 1
+        run: |
+          mkdocs build --strict \
+            -f source-main/students/K3242/Marusyak_Nikita/laboratory_work1/mkdocs.yml \
+            -d "$GITHUB_WORKSPACE/public"
+
+      - name: Build Lab 2
+        run: |
+          mkdocs build --strict \
+            -f source-lr2/students/K3242/Marusyak_Nikita/Lr2/mkdocs.yml \
+            -d "$GITHUB_WORKSPACE/public/lr2"
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -36,7 +55,7 @@ jobs:
       - name: Upload site
         uses: actions/upload-pages-artifact@v4
         with:
-          path: students/K3242/Marusyak_Nikita/laboratory_work1/site
+          path: public
 
   deploy:
     needs: build
